@@ -652,38 +652,74 @@
             walletText.innerHTML = '<span class="loading"></span>Connecting...';
             
             try {
-                // Simulate wallet connection
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                // Mock wallet connection - replace with real wallet integration
-                const mockWallets = [
-                    "0xADMIN123456789", // Admin wallet
-                    "0x1234567890123", // Regular user
-                    "0x9876543210987"  // Regular user
-                ];
-                
-                userWallet = mockWallets[Math.floor(Math.random() * mockWallets.length)];
-                
-                // Check if admin
-                isAdmin = (userWallet === adminWalletAddress);
-                
-                walletText.textContent = 'Connected: ' + userWallet.substring(0, 6) + '...' + userWallet.substring(userWallet.length - 4);
-                tokenInfo.classList.remove('hidden');
-                
-                // Show admin tab if admin
-                if (isAdmin) {
-                    document.getElementById('admin-tab').classList.remove('hidden');
-                    showNotification('Admin access granted!', 'success');
+                // Check if wallet is available
+                if (typeof window.ethereum !== 'undefined') {
+                    // Request account access
+                    const accounts = await window.ethereum.request({
+                        method: 'eth_requestAccounts'
+                    });
+                    
+                    if (accounts.length === 0) {
+                        throw new Error('No accounts found');
+                    }
+                    
+                    userWallet = accounts[0];
+                    
+                    // Check if admin (case insensitive)
+                    isAdmin = (userWallet.toLowerCase() === adminWalletAddress.toLowerCase());
+                    
+                    walletText.textContent = 'Connected: ' + userWallet.substring(0, 6) + '...' + userWallet.substring(userWallet.length - 4);
+                    tokenInfo.classList.remove('hidden');
+                    
+                    // Show admin tab if admin
+                    if (isAdmin) {
+                        document.getElementById('admin-tab').classList.remove('hidden');
+                        showNotification('Admin access granted!', 'success');
+                    } else {
+                        showNotification('Connected successfully!', 'success');
+                    }
+                    
+                    // Request location permission
+                    requestLocation();
+                    
+                } else if (typeof window.web3 !== 'undefined') {
+                    // Fallback for older wallets
+                    const accounts = await window.web3.eth.getAccounts();
+                    if (accounts.length === 0) {
+                        throw new Error('No accounts found');
+                    }
+                    
+                    userWallet = accounts[0];
+                    isAdmin = (userWallet.toLowerCase() === adminWalletAddress.toLowerCase());
+                    
+                    walletText.textContent = 'Connected: ' + userWallet.substring(0, 6) + '...' + userWallet.substring(userWallet.length - 4);
+                    tokenInfo.classList.remove('hidden');
+                    
+                    if (isAdmin) {
+                        document.getElementById('admin-tab').classList.remove('hidden');
+                        showNotification('Admin access granted!', 'success');
+                    } else {
+                        showNotification('Connected successfully!', 'success');
+                    }
+                    
+                    requestLocation();
+                    
                 } else {
-                    showNotification('User access granted!', 'success');
+                    // No wallet detected - show instructions
+                    throw new Error('No wallet detected');
                 }
                 
-                // Request location permission
-                requestLocation();
-                
             } catch (error) {
+                console.error('Wallet connection error:', error);
                 walletText.textContent = 'Connect Wallet';
-                showNotification('Failed to connect wallet', 'error');
+                
+                if (error.code === 4001) {
+                    showNotification('Wallet connection rejected by user', 'error');
+                } else if (error.message.includes('No wallet detected')) {
+                    showNotification('Please install MetaMask, Rainbow, or another Web3 wallet', 'error');
+                } else {
+                    showNotification('Failed to connect wallet: ' + error.message, 'error');
+                }
             }
         }
 
