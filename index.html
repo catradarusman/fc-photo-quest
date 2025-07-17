@@ -1076,44 +1076,60 @@
             const progressText = document.getElementById('progress-text');
             const verificationResult = document.getElementById('verification-result');
             
-            uploadProgress.classList.remove('hidden');
-            verificationResult.classList.add('hidden');
-            
-            // Convert blob to base64 for processing
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const capturedImageData = e.target.result;
+            try {
+                uploadProgress.classList.remove('hidden');
+                verificationResult.classList.add('hidden');
                 
-                // Simulate AI verification progress
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 15;
-                    if (progress > 100) progress = 100;
+                // Convert blob to base64 for processing
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const capturedImageData = e.target.result;
                     
-                    progressFill.style.width = progress + '%';
-                    
-                    if (progress < 20) {
-                        progressText.textContent = 'Analyzing photo quality...';
-                    } else if (progress < 40) {
-                        progressText.textContent = 'Comparing with reference data...';
-                    } else if (progress < 60) {
-                        progressText.textContent = 'Calculating confidence score...';
-                    } else if (progress < 80) {
-                        progressText.textContent = 'Determining points earned...';
-                    } else {
-                        progressText.textContent = 'Preparing Farcaster post...';
-                    }
-                    
-                    if (progress >= 100) {
-                        clearInterval(progressInterval);
-                        setTimeout(() => {
-                            uploadProgress.classList.add('hidden');
-                            performImageVerification(capturedImageData);
-                        }, 800);
-                    }
-                }, 200);
-            };
-            reader.readAsDataURL(photoBlob);
+                    // Simulate AI verification progress
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += Math.random() * 15;
+                        if (progress > 100) progress = 100;
+                        
+                        progressFill.style.width = progress + '%';
+                        
+                        if (progress < 20) {
+                            progressText.textContent = 'Analyzing photo quality...';
+                        } else if (progress < 40) {
+                            progressText.textContent = 'Comparing with reference data...';
+                        } else if (progress < 60) {
+                            progressText.textContent = 'Calculating confidence score...';
+                        } else if (progress < 80) {
+                            progressText.textContent = 'Determining points earned...';
+                        } else {
+                            progressText.textContent = 'Preparing Farcaster post...';
+                        }
+                        
+                        if (progress >= 100) {
+                            clearInterval(progressInterval);
+                            setTimeout(() => {
+                                uploadProgress.classList.add('hidden');
+                                performImageVerification(capturedImageData);
+                            }, 800);
+                        }
+                    }, 200);
+                };
+                
+                reader.onerror = function(error) {
+                    console.error('FileReader error:', error);
+                    showNotification('Failed to process photo. Please try again.', 'error');
+                    uploadProgress.classList.add('hidden');
+                    enableCameraButton(); // FIX: Re-enable on file read error
+                };
+                
+                reader.readAsDataURL(photoBlob);
+                
+            } catch (error) {
+                console.error('processLivePhoto error:', error);
+                showNotification('Photo processing failed. Please try again.', 'error');
+                uploadProgress.classList.add('hidden');
+                enableCameraButton(); // FIX: Re-enable on any processing error
+            }
         }
 
         // Advanced image scoring system
