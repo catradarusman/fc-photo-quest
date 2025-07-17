@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <p><strong>⚠️ Demo Mode:</strong> AI verification is currently simulated. Upload training images to improve accuracy.</p>
+                    <p><strong>🔧 For Production:</strong> Integrate with OpenAI Vision API, Google Cloud Vision, or custom ML model.</p>
+                </div><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -958,7 +961,14 @@
                 currentStream.getTracks().forEach(track => track.stop());
                 currentStream = null;
             }
-            document.getElementById('camera-open-btn').style.display = 'inline-block';
+            
+            // Hide camera section
+            const cameraSection = document.getElementById('camera-section');
+            cameraSection.classList.add('hidden');
+            
+            // Show camera button
+            const cameraBtn = document.getElementById('camera-open-btn');
+            cameraBtn.style.display = 'inline-block';
         }
 
         // Live photo processing with training data comparison
@@ -1109,8 +1119,22 @@
 
         // Reset submission state
         function resetSubmission() {
-            document.getElementById('camera-open-btn').style.display = 'inline-block';
+            // Reset camera button visibility
+            const cameraBtn = document.getElementById('camera-open-btn');
+            cameraBtn.style.display = 'inline-block';
+            
+            // Clear captured photo data
             capturedPhotoBlob = null;
+            
+            // Ensure camera section is hidden
+            const cameraSection = document.getElementById('camera-section');
+            cameraSection.classList.add('hidden');
+            
+            // Stop any existing camera stream
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
             
             // Hide verification result after success
             setTimeout(() => {
