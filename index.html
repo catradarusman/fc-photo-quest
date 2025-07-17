@@ -437,7 +437,7 @@
     <div class="container">
         <div class="header">
             <h1>🎯 FC Photo Quest</h1>
-            <p>Token-gated photo verification on Farcaster</p>
+            <p>Token-gated photo verification on Farcaster • Base Network</p>
         </div>
 
         <div class="nav-tabs">
@@ -665,18 +665,22 @@
                     
                     userWallet = accounts[0];
                     
+                    // Check and switch to Base network
+                    await switchToBase();
+                    
                     // Check if admin (case insensitive)
                     isAdmin = (userWallet.toLowerCase() === adminWalletAddress.toLowerCase());
                     
                     walletText.textContent = 'Connected: ' + userWallet.substring(0, 6) + '...' + userWallet.substring(userWallet.length - 4);
+                    tokenInfo.innerHTML = '<p>✅ Connected to Base Network</p>';
                     tokenInfo.classList.remove('hidden');
                     
                     // Show admin tab if admin
                     if (isAdmin) {
                         document.getElementById('admin-tab').classList.remove('hidden');
-                        showNotification('Admin access granted!', 'success');
+                        showNotification('Admin access granted on Base!', 'success');
                     } else {
-                        showNotification('Connected successfully!', 'success');
+                        showNotification('Connected to Base successfully!', 'success');
                     }
                     
                     // Request location permission
@@ -690,16 +694,19 @@
                     }
                     
                     userWallet = accounts[0];
+                    await switchToBase();
+                    
                     isAdmin = (userWallet.toLowerCase() === adminWalletAddress.toLowerCase());
                     
                     walletText.textContent = 'Connected: ' + userWallet.substring(0, 6) + '...' + userWallet.substring(userWallet.length - 4);
+                    tokenInfo.innerHTML = '<p>✅ Connected to Base Network</p>';
                     tokenInfo.classList.remove('hidden');
                     
                     if (isAdmin) {
                         document.getElementById('admin-tab').classList.remove('hidden');
-                        showNotification('Admin access granted!', 'success');
+                        showNotification('Admin access granted on Base!', 'success');
                     } else {
-                        showNotification('Connected successfully!', 'success');
+                        showNotification('Connected to Base successfully!', 'success');
                     }
                     
                     requestLocation();
@@ -720,6 +727,54 @@
                 } else {
                     showNotification('Failed to connect wallet: ' + error.message, 'error');
                 }
+            }
+        }
+
+        // Switch to Base network
+        async function switchToBase() {
+            const baseChainId = '0x2105'; // Base Mainnet chain ID (8453 in decimal)
+            
+            try {
+                // Check current network
+                const currentChainId = await window.ethereum.request({
+                    method: 'eth_chainId'
+                });
+                
+                if (currentChainId !== baseChainId) {
+                    try {
+                        // Try to switch to Base
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: baseChainId }],
+                        });
+                    } catch (switchError) {
+                        // If Base is not added to wallet, add it
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: baseChainId,
+                                    chainName: 'Base',
+                                    nativeCurrency: {
+                                        name: 'Ethereum',
+                                        symbol: 'ETH',
+                                        decimals: 18,
+                                    },
+                                    rpcUrls: ['https://mainnet.base.org'],
+                                    blockExplorerUrls: ['https://basescan.org/'],
+                                }],
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
+                }
+                
+                showNotification('Switched to Base network', 'success');
+                
+            } catch (error) {
+                console.error('Network switch error:', error);
+                showNotification('Please manually switch to Base network', 'info');
             }
         }
 
