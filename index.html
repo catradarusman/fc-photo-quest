@@ -16,48 +16,63 @@
 
 
 
-        // Update map with new photo locations (moved for better positioning)
-        function updateMap() {
+        // Safe map update function
+        function updateMapSafely() {
             try {
-                const totalPins = document.getElementById('total-pins');
-                const totalLocations = document.getElementById('total-locations');
-                const avgMapScore = document.getElementById('avg-map-score');
-                const topScore = document.getElementById('top-score');
-                const mapSvg = document.getElementById('world-map-svg');
-                const mapPlaceholder = document.getElementById('map-placeholder');
-                const photoPins = document.getElementById('photo-pins');
+                console.log('🗺️ Updating map with', photoLocations.length, 'locations');
+                
+                const elements = {
+                    totalPins: document.getElementById('total-pins'),
+                    totalLocations: document.getElementById('total-locations'),
+                    avgMapScore: document.getElementById('avg-map-score'),
+                    topScore: document.getElementById('top-score'),
+                    mapSvg: document.getElementById('world-map-svg'),
+                    mapPlaceholder: document.getElementById('map-placeholder'),
+                    photoPins: document.getElementById('photo-pins')
+                };
+                
+                // Check if all elements exist
+                for (let [key, element] of Object.entries(elements)) {
+                    if (!element) {
+                        console.warn(`Map element ${key} not found`);
+                        return;
+                    }
+                }
                 
                 if (photoLocations.length > 0) {
                     // Show map, hide placeholder
-                    mapSvg.style.display = 'block';
-                    mapPlaceholder.style.display = 'none';
+                    elements.mapSvg.style.display = 'block';
+                    elements.mapPlaceholder.style.display = 'none';
                     
                     // Clear existing pins
-                    photoPins.innerHTML = '';
+                    elements.photoPins.innerHTML = '';
                     
                     // Add pins for each photo location
                     photoLocations.forEach((location, index) => {
-                        // Convert lat/lng to SVG coordinates (simplified)
-                        const x = ((location.lng + 180) / 360) * 800; // 0-800
-                        const y = ((90 - location.lat) / 180) * 400; // 0-400
-                        
-                        // Determine pin color based on score
-                        let pinColor = '#ef4444'; // Red for low scores
-                        if (location.score >= 80) pinColor = '#10b981'; // Green for high scores
-                        else if (location.score >= 60) pinColor = '#f59e0b'; // Yellow for medium scores
-                        
-                        // Create pin element
-                        const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        pin.innerHTML = `
-                            <circle cx="${x}" cy="${y}" r="4" fill="${pinColor}" stroke="white" stroke-width="1" opacity="0.8"/>
-                            <text x="${x}" y="${y-8}" text-anchor="middle" font-size="10" fill="${pinColor}" font-weight="bold">${location.score}%</text>
-                        `;
-                        
-                        // Add hover effect
-                        pin.setAttribute('title', `${location.wallet} - ${location.score}%`);
-                        pin.style.cursor = 'pointer';
-                        
-                        photoPins.appendChild(pin);
+                        try {
+                            // Convert lat/lng to SVG coordinates (simplified)
+                            const x = ((location.lng + 180) / 360) * 800;
+                            const y = ((90 - location.lat) / 180) * 400;
+                            
+                            // Determine pin color based on score
+                            let pinColor = '#ef4444';
+                            if (location.score >= 80) pinColor = '#10b981';
+                            else if (location.score >= 60) pinColor = '#f59e0b';
+                            
+                            // Create pin element
+                            const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                            pin.innerHTML = `
+                                <circle cx="${x}" cy="${y}" r="4" fill="${pinColor}" stroke="white" stroke-width="1" opacity="0.8"/>
+                                <text x="${x}" y="${y-8}" text-anchor="middle" font-size="10" fill="${pinColor}" font-weight="bold">${location.score}%</text>
+                            `;
+                            
+                            pin.setAttribute('title', `${location.wallet} - ${location.score}%`);
+                            pin.style.cursor = 'pointer';
+                            
+                            elements.photoPins.appendChild(pin);
+                        } catch (pinError) {
+                            console.error('Error creating pin:', pinError);
+                        }
                     });
                     
                     // Calculate statistics
@@ -67,22 +82,25 @@
                     const uniqueLocations = new Set(photoLocations.map(loc => `${loc.lat},${loc.lng}`)).size;
                     
                     // Update stats
-                    totalPins.textContent = photoLocations.length;
-                    totalLocations.textContent = uniqueLocations;
-                    avgMapScore.textContent = Math.round(avgScore * 100) / 100 + '%';
-                    topScore.textContent = maxScore + '%';
+                    elements.totalPins.textContent = photoLocations.length;
+                    elements.totalLocations.textContent = uniqueLocations;
+                    elements.avgMapScore.textContent = Math.round(avgScore * 100) / 100 + '%';
+                    elements.topScore.textContent = maxScore + '%';
                     
                 } else {
                     // Show placeholder
-                    mapSvg.style.display = 'none';
-                    mapPlaceholder.style.display = 'flex';
-                    totalPins.textContent = '0';
-                    totalLocations.textContent = '0';
-                    avgMapScore.textContent = '0%';
-                    topScore.textContent = '0%';
+                    elements.mapSvg.style.display = 'none';
+                    elements.mapPlaceholder.style.display = 'flex';
+                    elements.totalPins.textContent = '0';
+                    elements.totalLocations.textContent = '0';
+                    elements.avgMapScore.textContent = '0%';
+                    elements.topScore.textContent = '0%';
                 }
+                
+                console.log('✅ Map updated successfully');
+                
             } catch (error) {
-                console.error('updateMap error:', error);
+                console.error('❌ Map update failed:', error);
             }
         }
 
@@ -1125,7 +1143,14 @@
                     console.error('FileReader error:', error);
                     showNotification('Failed to process photo. Please try again.', 'error');
                     uploadProgress.classList.add('hidden');
-                    enableCameraButton(); // FIX: Re-enable on file read error
+                    // Re-enable button on file read error
+                    const cameraBtn = document.getElementById('camera-open-btn');
+                    cameraBtn.disabled = false;
+                    cameraBtn.textContent = '📱 Take Photo & Earn Points';
+                    cameraBtn.style.opacity = '1';
+                    cameraBtn.style.cursor = 'pointer';
+                    cameraBtn.style.display = 'inline-block';
+                    capturedPhotoBlob = null;
                 };
                 
                 reader.readAsDataURL(photoBlob);
@@ -1134,7 +1159,14 @@
                 console.error('processLivePhoto error:', error);
                 showNotification('Photo processing failed. Please try again.', 'error');
                 uploadProgress.classList.add('hidden');
-                enableCameraButton(); // FIX: Re-enable on any processing error
+                // Re-enable button on any processing error
+                const cameraBtn = document.getElementById('camera-open-btn');
+                cameraBtn.disabled = false;
+                cameraBtn.textContent = '📱 Take Photo & Earn Points';
+                cameraBtn.style.opacity = '1';
+                cameraBtn.style.cursor = 'pointer';
+                cameraBtn.style.display = 'inline-block';
+                capturedPhotoBlob = null;
             }
         }
 
@@ -1246,36 +1278,7 @@
             }, 2000);
         }
 
-        // Dedicated function to enable camera button
-        function enableCameraButton() {
-            const cameraBtn = document.getElementById('camera-open-btn');
-            
-            // Debug logging
-            console.log('enableCameraButton() called');
-            console.log('Button before:', {
-                disabled: cameraBtn.disabled,
-                textContent: cameraBtn.textContent,
-                display: cameraBtn.style.display,
-                opacity: cameraBtn.style.opacity
-            });
-            
-            cameraBtn.disabled = false;
-            cameraBtn.textContent = '📱 Take Photo & Earn Points';
-            cameraBtn.style.opacity = '1';
-            cameraBtn.style.cursor = 'pointer';
-            cameraBtn.style.display = 'inline-block';
-            
-            // Clear any captured photo data
-            capturedPhotoBlob = null;
-            
-            console.log('Button after:', {
-                disabled: cameraBtn.disabled,
-                textContent: cameraBtn.textContent,
-                display: cameraBtn.style.display,
-                opacity: cameraBtn.style.opacity
-            });
-            console.log('Camera button re-enabled for next photo');
-        }
+
 
         // Calculate similarity between two feature sets
         function calculateSimilarity(features1, features2) {
