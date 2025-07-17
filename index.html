@@ -14,69 +14,75 @@
             box-sizing: border-box;
         }
 
-        // Update map with new photo locations
+
+
+        // Update map with new photo locations (moved for better positioning)
         function updateMap() {
-            const totalPins = document.getElementById('total-pins');
-            const totalLocations = document.getElementById('total-locations');
-            const avgMapScore = document.getElementById('avg-map-score');
-            const topScore = document.getElementById('top-score');
-            const mapSvg = document.getElementById('world-map-svg');
-            const mapPlaceholder = document.getElementById('map-placeholder');
-            const photoPins = document.getElementById('photo-pins');
-            
-            if (photoLocations.length > 0) {
-                // Show map, hide placeholder
-                mapSvg.style.display = 'block';
-                mapPlaceholder.style.display = 'none';
+            try {
+                const totalPins = document.getElementById('total-pins');
+                const totalLocations = document.getElementById('total-locations');
+                const avgMapScore = document.getElementById('avg-map-score');
+                const topScore = document.getElementById('top-score');
+                const mapSvg = document.getElementById('world-map-svg');
+                const mapPlaceholder = document.getElementById('map-placeholder');
+                const photoPins = document.getElementById('photo-pins');
                 
-                // Clear existing pins
-                photoPins.innerHTML = '';
-                
-                // Add pins for each photo location
-                photoLocations.forEach((location, index) => {
-                    // Convert lat/lng to SVG coordinates (simplified)
-                    const x = ((location.lng + 180) / 360) * 800; // 0-800
-                    const y = ((90 - location.lat) / 180) * 400; // 0-400
+                if (photoLocations.length > 0) {
+                    // Show map, hide placeholder
+                    mapSvg.style.display = 'block';
+                    mapPlaceholder.style.display = 'none';
                     
-                    // Determine pin color based on score
-                    let pinColor = '#ef4444'; // Red for low scores
-                    if (location.score >= 80) pinColor = '#10b981'; // Green for high scores
-                    else if (location.score >= 60) pinColor = '#f59e0b'; // Yellow for medium scores
+                    // Clear existing pins
+                    photoPins.innerHTML = '';
                     
-                    // Create pin element
-                    const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                    pin.innerHTML = `
-                        <circle cx="${x}" cy="${y}" r="4" fill="${pinColor}" stroke="white" stroke-width="1" opacity="0.8"/>
-                        <text x="${x}" y="${y-8}" text-anchor="middle" font-size="10" fill="${pinColor}" font-weight="bold">${location.score}%</text>
-                    `;
+                    // Add pins for each photo location
+                    photoLocations.forEach((location, index) => {
+                        // Convert lat/lng to SVG coordinates (simplified)
+                        const x = ((location.lng + 180) / 360) * 800; // 0-800
+                        const y = ((90 - location.lat) / 180) * 400; // 0-400
+                        
+                        // Determine pin color based on score
+                        let pinColor = '#ef4444'; // Red for low scores
+                        if (location.score >= 80) pinColor = '#10b981'; // Green for high scores
+                        else if (location.score >= 60) pinColor = '#f59e0b'; // Yellow for medium scores
+                        
+                        // Create pin element
+                        const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        pin.innerHTML = `
+                            <circle cx="${x}" cy="${y}" r="4" fill="${pinColor}" stroke="white" stroke-width="1" opacity="0.8"/>
+                            <text x="${x}" y="${y-8}" text-anchor="middle" font-size="10" fill="${pinColor}" font-weight="bold">${location.score}%</text>
+                        `;
+                        
+                        // Add hover effect
+                        pin.setAttribute('title', `${location.wallet} - ${location.score}%`);
+                        pin.style.cursor = 'pointer';
+                        
+                        photoPins.appendChild(pin);
+                    });
                     
-                    // Add hover effect
-                    pin.setAttribute('title', `${location.wallet} - ${location.score}%`);
-                    pin.style.cursor = 'pointer';
+                    // Calculate statistics
+                    const scores = photoLocations.map(loc => loc.score);
+                    const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+                    const maxScore = Math.max(...scores);
+                    const uniqueLocations = new Set(photoLocations.map(loc => `${loc.lat},${loc.lng}`)).size;
                     
-                    photoPins.appendChild(pin);
-                });
-                
-                // Calculate statistics
-                const scores = photoLocations.map(loc => loc.score);
-                const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-                const maxScore = Math.max(...scores);
-                const uniqueLocations = new Set(photoLocations.map(loc => `${loc.lat},${loc.lng}`)).size;
-                
-                // Update stats
-                totalPins.textContent = photoLocations.length;
-                totalLocations.textContent = uniqueLocations;
-                avgMapScore.textContent = Math.round(avgScore * 100) / 100 + '%';
-                topScore.textContent = maxScore + '%';
-                
-            } else {
-                // Show placeholder
-                mapSvg.style.display = 'none';
-                mapPlaceholder.style.display = 'flex';
-                totalPins.textContent = '0';
-                totalLocations.textContent = '0';
-                avgMapScore.textContent = '0%';
-                topScore.textContent = '0%';
+                    // Update stats
+                    totalPins.textContent = photoLocations.length;
+                    totalLocations.textContent = uniqueLocations;
+                    avgMapScore.textContent = Math.round(avgScore * 100) / 100 + '%';
+                    topScore.textContent = maxScore + '%';
+                    
+                } else {
+                    // Show placeholder
+                    mapSvg.style.display = 'none';
+                    mapPlaceholder.style.display = 'flex';
+                    totalPins.textContent = '0';
+                    totalLocations.textContent = '0';
+                    avgMapScore.textContent = '0%';
+                    topScore.textContent = '0%';
+                }
+            } catch (error) {
+                console.error('updateMap error:', error);
             }
         }
 
