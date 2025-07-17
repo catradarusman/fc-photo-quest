@@ -14,6 +14,72 @@
             box-sizing: border-box;
         }
 
+        // Update map with new photo locations
+        function updateMap() {
+            const totalPins = document.getElementById('total-pins');
+            const totalLocations = document.getElementById('total-locations');
+            const avgMapScore = document.getElementById('avg-map-score');
+            const topScore = document.getElementById('top-score');
+            const mapSvg = document.getElementById('world-map-svg');
+            const mapPlaceholder = document.getElementById('map-placeholder');
+            const photoPins = document.getElementById('photo-pins');
+            
+            if (photoLocations.length > 0) {
+                // Show map, hide placeholder
+                mapSvg.style.display = 'block';
+                mapPlaceholder.style.display = 'none';
+                
+                // Clear existing pins
+                photoPins.innerHTML = '';
+                
+                // Add pins for each photo location
+                photoLocations.forEach((location, index) => {
+                    // Convert lat/lng to SVG coordinates (simplified)
+                    const x = ((location.lng + 180) / 360) * 800; // 0-800
+                    const y = ((90 - location.lat) / 180) * 400; // 0-400
+                    
+                    // Determine pin color based on score
+                    let pinColor = '#ef4444'; // Red for low scores
+                    if (location.score >= 80) pinColor = '#10b981'; // Green for high scores
+                    else if (location.score >= 60) pinColor = '#f59e0b'; // Yellow for medium scores
+                    
+                    // Create pin element
+                    const pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    pin.innerHTML = `
+                        <circle cx="${x}" cy="${y}" r="4" fill="${pinColor}" stroke="white" stroke-width="1" opacity="0.8"/>
+                        <text x="${x}" y="${y-8}" text-anchor="middle" font-size="10" fill="${pinColor}" font-weight="bold">${location.score}%</text>
+                    `;
+                    
+                    // Add hover effect
+                    pin.setAttribute('title', `${location.wallet} - ${location.score}%`);
+                    pin.style.cursor = 'pointer';
+                    
+                    photoPins.appendChild(pin);
+                });
+                
+                // Calculate statistics
+                const scores = photoLocations.map(loc => loc.score);
+                const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+                const maxScore = Math.max(...scores);
+                const uniqueLocations = new Set(photoLocations.map(loc => `${loc.lat},${loc.lng}`)).size;
+                
+                // Update stats
+                totalPins.textContent = photoLocations.length;
+                totalLocations.textContent = uniqueLocations;
+                avgMapScore.textContent = Math.round(avgScore * 100) / 100 + '%';
+                topScore.textContent = maxScore + '%';
+                
+            } else {
+                // Show placeholder
+                mapSvg.style.display = 'none';
+                mapPlaceholder.style.display = 'flex';
+                totalPins.textContent = '0';
+                totalLocations.textContent = '0';
+                avgMapScore.textContent = '0%';
+                topScore.textContent = '0%';
+            }
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -543,38 +609,50 @@
 
         <!-- Map Tab -->
         <div id="map" class="tab-content">
-            <h2 style="margin-bottom: 20px;">🗺️ Global Photo Map</h2>
-            <div class="map-container">
-                <div class="map-placeholder">
-                    <h3>🌍 Interactive World Map</h3>
-                    <p>Photo locations will appear here</p>
-                </div>
-                <div class="mini-map">
-                    📍 127 Photos
-                </div>
+            <h2 style="margin-bottom: 20px;">🗺️ Photo Locations</h2>
+            <div style="background: #f8f9ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <p><strong>📍 Live Map:</strong> Every submitted photo is automatically pinned to show global participation!</p>
             </div>
             
-            <h3 style="margin: 30px 0 20px 0;">📸 Recent Submissions</h3>
-            <div class="photo-grid">
-                <div class="photo-item">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04MCA2MEMzIDYwIDkwIDkwIDkwIDkwQzEyMCA2MCA5MCA5MCA5MCA5MEMxMjAgMTIwIDkwIDkwIDkwIDkwQzYwIDEyMCA5MCA5MCA5MCA5MEMzIDEyMCA5MCA5MCA5MCA5MEMzIDYwIDkwIDkwIDkwIDkwWiIgZmlsbD0iIzY2N0VFQSIvPgo8L3N2Zz4K" alt="Photo">
-                    <div class="photo-info">
-                        <div class="photo-user">@alice.eth</div>
-                        <div class="photo-location">📍 San Francisco, CA</div>
-                    </div>
+            <div class="map-container" id="world-map">
+                <div class="map-placeholder" id="map-placeholder">
+                    <h3>🌍 Global Photo Map</h3>
+                    <p>Photo locations will appear here</p>
+                    <p style="color: #667eea; margin-top: 10px;"><strong id="total-pins">0</strong> photos pinned worldwide</p>
                 </div>
-                <div class="photo-item">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04MCA2MEMzIDYwIDkwIDkwIDkwIDkwQzEyMCA2MCA5MCA5MCA5MCA5MEMxMjAgMTIwIDkwIDkwIDkwIDkwQzYwIDEyMCA5MCA5MCA5MCA5MEMzIDEyMCA5MCA5MCA5MCA5MEMzIDYwIDkwIDkwIDkwIDkwWiIgZmlsbD0iIzc2NEJBMiIvPgo8L3N2Zz4K" alt="Photo">
-                    <div class="photo-info">
-                        <div class="photo-user">@bob_farcaster</div>
-                        <div class="photo-location">📍 New York, NY</div>
+                
+                <!-- Simple SVG World Map -->
+                <svg id="world-map-svg" width="100%" height="100%" viewBox="0 0 800 400" style="display: none;">
+                    <!-- Simple world map outline -->
+                    <rect width="800" height="400" fill="#e6f3ff"/>
+                    
+                    <!-- Continents (simplified) -->
+                    <path d="M100,100 L200,80 L280,120 L250,180 L150,200 Z" fill="#c7d2fe" stroke="#667eea"/> <!-- Europe -->
+                    <path d="M200,150 L350,130 L380,200 L320,250 L180,230 Z" fill="#c7d2fe" stroke="#667eea"/> <!-- Asia -->
+                    <path d="M380,220 L480,200 L520,280 L450,320 L380,300 Z" fill="#c7d2fe" stroke="#667eea"/> <!-- Australia -->
+                    <path d="M80,200 L180,180 L200,280 L120,320 L60,280 Z" fill="#c7d2fe" stroke="#667eea"/> <!-- Africa -->
+                    <path d="M50,80 L150,60 L180,140 L120,180 L40,160 Z" fill="#c7d2fe" stroke="#667eea"/> <!-- North America -->
+                    <path d="M120,200 L200,180 L220,260 L160,300 L100,280 Z" fill="#c7d2fe" stroke="#667eea"/> <!-- South America -->
+                    
+                    <!-- Photo pins will be added here -->
+                    <g id="photo-pins"></g>
+                </svg>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                <h3 style="margin-bottom: 15px;">📊 Map Statistics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; text-align: center;">
+                    <div>
+                        <div style="font-size: 1.5em; color: #667eea; font-weight: bold;" id="total-locations">0</div>
+                        <div style="font-size: 12px;">Locations</div>
                     </div>
-                </div>
-                <div class="photo-item">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04MCA2MEMzIDYwIDkwIDkwIDkwIDkwQzEyMCA2MCA5MCA5MCA5MCA5MEMxMjAgMTIwIDkwIDkwIDkwIDkwQzYwIDEyMCA5MCA5MCA5MCA5MEMzIDEyMCA5MCA5MCA5MCA5MEMzIDYwIDkwIDkwIDkwIDkwWiIgZmlsbD0iIzEwQjk4MSIvPgo8L3N2Zz4K" alt="Photo">
-                    <div class="photo-info">
-                        <div class="photo-user">@crypto_charlie</div>
-                        <div class="photo-location">📍 Tokyo, Japan</div>
+                    <div>
+                        <div style="font-size: 1.5em; color: #10b981; font-weight: bold;" id="avg-map-score">0%</div>
+                        <div style="font-size: 12px;">Avg Score</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5em; color: #f59e0b; font-weight: bold;" id="top-score">0%</div>
+                        <div style="font-size: 12px;">Best Score</div>
                     </div>
                 </div>
             </div>
@@ -638,6 +716,7 @@
         let capturedPhotoBlob = null;
         let userScores = {}; // Store all user scores
         let userSubmissions = {}; // Store submission count per user
+        let photoLocations = []; // Store all photo locations for map
         let isAdmin = false;
         let adminWalletAddress = "0xe8bB2E08e6f52f11D8B65e2A3db772DaA60e117e"; // Your admin wallet
 
@@ -798,9 +877,21 @@
                         showNotification('Location access granted', 'success');
                     },
                     (error) => {
-                        showNotification('Location access denied', 'info');
+                        // Generate random location for demo if real location denied
+                        userLocation = {
+                            lat: (Math.random() - 0.5) * 160, // -80 to 80 latitude
+                            lng: (Math.random() - 0.5) * 360  // -180 to 180 longitude
+                        };
+                        showNotification('Using demo location for map', 'info');
                     }
                 );
+            } else {
+                // Fallback demo location
+                userLocation = {
+                    lat: (Math.random() - 0.5) * 160,
+                    lng: (Math.random() - 0.5) * 360
+                };
+                showNotification('Using demo location for map', 'info');
             }
         }
 
@@ -949,6 +1040,13 @@
                 document.getElementById('camera-section').classList.add('hidden');
                 closeCamera();
                 
+                // Disable the take photo button
+                const cameraBtn = document.getElementById('camera-open-btn');
+                cameraBtn.disabled = true;
+                cameraBtn.textContent = '⏳ Processing...';
+                cameraBtn.style.opacity = '0.6';
+                cameraBtn.style.cursor = 'not-allowed';
+                
                 // Start immediate scoring
                 showNotification('Photo captured - calculating score...', 'info');
                 processLivePhoto(blob);
@@ -1040,6 +1138,17 @@
                 const confidenceScore = Math.round(maxSimilarity * 100);
                 const pointsEarned = confidenceScore; // 1 point per % confidence
                 
+                // Store location data for map
+                if (userLocation) {
+                    photoLocations.push({
+                        lat: userLocation.lat,
+                        lng: userLocation.lng,
+                        wallet: userWallet.substring(0, 6) + '...',
+                        score: confidenceScore,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+                
                 // Update user scores
                 if (!userScores[userWallet]) {
                     userScores[userWallet] = [];
@@ -1100,6 +1209,7 @@
                 setTimeout(() => {
                     showNotification(`Photo posted with ${confidenceScore}% confidence! Average: ${roundedAverage}%`, 'success');
                     updateLeaderboard();
+                    updateMap();
                     resetSubmission();
                 }, 2000);
                 
@@ -1119,8 +1229,12 @@
 
         // Reset submission state
         function resetSubmission() {
-            // Reset camera button visibility
+            // Re-enable camera button
             const cameraBtn = document.getElementById('camera-open-btn');
+            cameraBtn.disabled = false;
+            cameraBtn.textContent = '📱 Take Photo & Earn Points';
+            cameraBtn.style.opacity = '1';
+            cameraBtn.style.cursor = 'pointer';
             cameraBtn.style.display = 'inline-block';
             
             // Clear captured photo data
