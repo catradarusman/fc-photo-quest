@@ -1211,12 +1211,8 @@
                     updateLeaderboard();
                     updateMap();
                     
-                    // Re-enable the button immediately after verification
-                    const cameraBtn = document.getElementById('camera-open-btn');
-                    cameraBtn.disabled = false;
-                    cameraBtn.textContent = '📱 Take Photo & Earn Points';
-                    cameraBtn.style.opacity = '1';
-                    cameraBtn.style.cursor = 'pointer';
+                    // CRITICAL: Re-enable the button for next photo
+                    enableCameraButton();
                     
                     // Hide verification result after a delay
                     setTimeout(() => {
@@ -1226,6 +1222,21 @@
                 }, 2000);
                 
             }, 2000);
+        }
+
+        // Dedicated function to enable camera button
+        function enableCameraButton() {
+            const cameraBtn = document.getElementById('camera-open-btn');
+            cameraBtn.disabled = false;
+            cameraBtn.textContent = '📱 Take Photo & Earn Points';
+            cameraBtn.style.opacity = '1';
+            cameraBtn.style.cursor = 'pointer';
+            cameraBtn.style.display = 'inline-block';
+            
+            // Clear any captured photo data
+            capturedPhotoBlob = null;
+            
+            console.log('Camera button re-enabled for next photo');
         }
 
         // Calculate similarity between two feature sets
@@ -1239,21 +1250,7 @@
             return (colorSim * 0.2 + shapeSim * 0.3 + objectSim * 0.4 + compositionSim * 0.1);
         }
 
-        // Reset submission state (simplified - no longer disables button)
-        function resetSubmission() {
-            // Clear captured photo data
-            capturedPhotoBlob = null;
-            
-            // Ensure camera section is hidden
-            const cameraSection = document.getElementById('camera-section');
-            cameraSection.classList.add('hidden');
-            
-            // Stop any existing camera stream
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-                currentStream = null;
-            }
-        }
+
 
         function updateLeaderboard() {
             // Calculate average scores for all users
