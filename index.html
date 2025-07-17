@@ -1244,22 +1244,31 @@
         function enableCameraButton() {
             const cameraBtn = document.getElementById('camera-open-btn');
             
-            // CRITICAL: Reset ALL button states completely
+            // Debug logging
+            console.log('enableCameraButton() called');
+            console.log('Button before:', {
+                disabled: cameraBtn.disabled,
+                textContent: cameraBtn.textContent,
+                display: cameraBtn.style.display,
+                opacity: cameraBtn.style.opacity
+            });
+            
             cameraBtn.disabled = false;
             cameraBtn.textContent = '📱 Take Photo & Earn Points';
             cameraBtn.style.opacity = '1';
             cameraBtn.style.cursor = 'pointer';
-            cameraBtn.style.display = 'inline-block'; // FORCE visible
-            cameraBtn.style.visibility = 'visible';    // Extra safety
+            cameraBtn.style.display = 'inline-block';
             
             // Clear any captured photo data
             capturedPhotoBlob = null;
             
-            // Ensure camera section is hidden
-            const cameraSection = document.getElementById('camera-section');
-            cameraSection.classList.add('hidden');
-            
-            console.log('✅ Camera button FULLY re-enabled and visible');
+            console.log('Button after:', {
+                disabled: cameraBtn.disabled,
+                textContent: cameraBtn.textContent,
+                display: cameraBtn.style.display,
+                opacity: cameraBtn.style.opacity
+            });
+            console.log('Camera button re-enabled for next photo');
         }
 
         // Calculate similarity between two feature sets
