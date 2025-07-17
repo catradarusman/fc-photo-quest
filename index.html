@@ -1210,7 +1210,19 @@
                     showNotification(`Photo posted with ${confidenceScore}% confidence! Average: ${roundedAverage}%`, 'success');
                     updateLeaderboard();
                     updateMap();
-                    resetSubmission();
+                    
+                    // Re-enable the button immediately after verification
+                    const cameraBtn = document.getElementById('camera-open-btn');
+                    cameraBtn.disabled = false;
+                    cameraBtn.textContent = '📱 Take Photo & Earn Points';
+                    cameraBtn.style.opacity = '1';
+                    cameraBtn.style.cursor = 'pointer';
+                    
+                    // Hide verification result after a delay
+                    setTimeout(() => {
+                        document.getElementById('verification-result').classList.add('hidden');
+                    }, 3000);
+                    
                 }, 2000);
                 
             }, 2000);
@@ -1227,16 +1239,8 @@
             return (colorSim * 0.2 + shapeSim * 0.3 + objectSim * 0.4 + compositionSim * 0.1);
         }
 
-        // Reset submission state
+        // Reset submission state (simplified - no longer disables button)
         function resetSubmission() {
-            // Re-enable camera button
-            const cameraBtn = document.getElementById('camera-open-btn');
-            cameraBtn.disabled = false;
-            cameraBtn.textContent = '📱 Take Photo & Earn Points';
-            cameraBtn.style.opacity = '1';
-            cameraBtn.style.cursor = 'pointer';
-            cameraBtn.style.display = 'inline-block';
-            
             // Clear captured photo data
             capturedPhotoBlob = null;
             
@@ -1249,11 +1253,6 @@
                 currentStream.getTracks().forEach(track => track.stop());
                 currentStream = null;
             }
-            
-            // Hide verification result after success
-            setTimeout(() => {
-                document.getElementById('verification-result').classList.add('hidden');
-            }, 5000);
         }
 
         function updateLeaderboard() {
