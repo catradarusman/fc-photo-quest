@@ -459,18 +459,18 @@
             </div>
 
             <div class="requirement-card">
-                <h3>📋 Current Quest</h3>
-                <p id="quest-description">Take a live photo matching our verification requirements</p>
-                <div class="status-indicator status-pending">Active</div>
+                <h3>📋 Photo Challenge</h3>
+                <p id="quest-description">Take live photos and earn points based on AI confidence scores!</p>
+                <div class="status-indicator status-success">Unlimited Submissions</div>
             </div>
 
             <div class="upload-section">
                 <div class="camera-instruction">
-                    <h3 style="color: #667eea; margin-bottom: 15px;">📸 Take & Verify Photo</h3>
-                    <p style="color: #6b7280; margin-bottom: 20px;">Take a live photo - AI will verify it instantly!</p>
+                    <h3 style="color: #667eea; margin-bottom: 15px;">📸 Earn Points with Every Photo</h3>
+                    <p style="color: #6b7280; margin-bottom: 20px;">Take unlimited photos and build your score! Higher confidence = more points.</p>
                     
                     <button class="camera-btn" onclick="openCamera()" id="camera-open-btn">
-                        📱 Take Photo & Verify
+                        📱 Take Photo & Earn Points
                     </button>
                 </div>
                 
@@ -501,34 +501,39 @@
 
         <!-- Leaderboard Tab -->
         <div id="leaderboard" class="tab-content">
-            <h2 style="margin-bottom: 20px;">🏆 Top Contributors</h2>
+            <h2 style="margin-bottom: 20px;">🏆 Top Performers</h2>
+            <div style="background: #f8f9ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <p><strong>🎯 Scoring System:</strong> Ranked by average confidence score across all submitted photos.</p>
+                <p><strong>📊 Formula:</strong> (Photo1 + Photo2 + Photo3) ÷ Total Photos = Average Score</p>
+                <p><strong>Example:</strong> Scores [80, 20, 60] = (80+20+60)÷3 = 53.33% average</p>
+            </div>
             <div id="leaderboard-list">
                 <div class="leaderboard-item">
                     <div class="rank">1</div>
                     <div class="user-avatar">A</div>
                     <div class="user-info">
-                        <div class="user-name">alice.eth</div>
-                        <div class="user-score">12 verified photos • 5 locations</div>
+                        <div class="user-name">0xAlice...1234</div>
+                        <div class="user-score">5 photos • scores: [85, 92, 78, 88, 91]</div>
                     </div>
-                    <div class="score-badge">1,250 pts</div>
+                    <div class="score-badge">86.8%</div>
                 </div>
                 <div class="leaderboard-item">
                     <div class="rank">2</div>
                     <div class="user-avatar">B</div>
                     <div class="user-info">
-                        <div class="user-name">bob_farcaster</div>
-                        <div class="user-score">8 verified photos • 4 locations</div>
+                        <div class="user-name">0xBob...5678</div>
+                        <div class="user-score">3 photos • scores: [90, 75, 85]</div>
                     </div>
-                    <div class="score-badge">950 pts</div>
+                    <div class="score-badge">83.33%</div>
                 </div>
                 <div class="leaderboard-item">
                     <div class="rank">3</div>
                     <div class="user-avatar">C</div>
                     <div class="user-info">
-                        <div class="user-name">crypto_charlie</div>
-                        <div class="user-score">6 verified photos • 6 locations</div>
+                        <div class="user-name">0xCharlie...9abc</div>
+                        <div class="user-score">8 photos • scores: [80, 20, 60, 95, 70, 88, 45, 92]</div>
                     </div>
-                    <div class="score-badge">800 pts</div>
+                    <div class="score-badge">68.75%</div>
                 </div>
             </div>
         </div>
@@ -590,8 +595,8 @@
 
             <div class="requirement-card">
                 <h3>🎯 Verification Settings</h3>
-                <p><strong>Confidence Threshold:</strong> 80% (Fixed)</p>
-                <p><strong>Max Attempts per User:</strong> 3</p>
+                <p><strong>Scoring System:</strong> Average confidence score</p>
+                <p><strong>Formula:</strong> (Sum of all scores) ÷ Total photos</p>
                 <p><strong>Training Images:</strong> <span id="training-count">0</span> uploaded</p>
             </div>
 
@@ -599,20 +604,20 @@
                 <h3>📊 Admin Statistics</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
                     <div style="text-align: center;">
-                        <div style="font-size: 2em; color: #667eea; font-weight: bold;">0</div>
+                        <div style="font-size: 2em; color: #667eea; font-weight: bold;" id="total-submissions">0</div>
                         <div>Total Submissions</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2em; color: #10b981; font-weight: bold;">0</div>
-                        <div>Verified</div>
+                        <div style="font-size: 2em; color: #10b981; font-weight: bold;" id="avg-confidence">0%</div>
+                        <div>Avg Confidence</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2em; color: #ef4444; font-weight: bold;">0</div>
-                        <div>Rejected</div>
+                        <div style="font-size: 2em; color: #f59e0b; font-weight: bold;" id="total-users">0</div>
+                        <div>Active Users</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2em; color: #f59e0b; font-weight: bold;">80%</div>
-                        <div>Success Rate</div>
+                        <div style="font-size: 2em; color: #ef4444; font-weight: bold;" id="total-points">0</div>
+                        <div>Total Points</div>
                     </div>
                 </div>
             </div>
@@ -628,8 +633,8 @@
         let userLocation = null;
         let trainingImages = [];
         let capturedPhotoBlob = null;
-        let currentVerificationAttempt = 0;
-        let maxVerificationAttempts = 3;
+        let userScores = {}; // Store all user scores
+        let userSubmissions = {}; // Store submission count per user
         let isAdmin = false;
         let adminWalletAddress = "0xe8bB2E08e6f52f11D8B65e2A3db772DaA60e117e"; // Your admin wallet
 
@@ -941,11 +946,8 @@
                 document.getElementById('camera-section').classList.add('hidden');
                 closeCamera();
                 
-                // Increment attempt counter
-                currentVerificationAttempt++;
-                
-                // Start immediate verification
-                showNotification('Photo captured - verifying...', 'info');
+                // Start immediate scoring
+                showNotification('Photo captured - calculating score...', 'info');
                 processLivePhoto(blob);
                 
             }, 'image/jpeg', 0.9);
@@ -983,15 +985,15 @@
                     progressFill.style.width = progress + '%';
                     
                     if (progress < 20) {
-                        progressText.textContent = 'Analyzing captured image...';
+                        progressText.textContent = 'Analyzing photo quality...';
                     } else if (progress < 40) {
-                        progressText.textContent = 'Comparing with training data...';
+                        progressText.textContent = 'Comparing with reference data...';
                     } else if (progress < 60) {
-                        progressText.textContent = 'Running similarity algorithms...';
-                    } else if (progress < 80) {
                         progressText.textContent = 'Calculating confidence score...';
+                    } else if (progress < 80) {
+                        progressText.textContent = 'Determining points earned...';
                     } else {
-                        progressText.textContent = 'Finalizing verification...';
+                        progressText.textContent = 'Preparing Farcaster post...';
                     }
                     
                     if (progress >= 100) {
@@ -1006,14 +1008,14 @@
             reader.readAsDataURL(photoBlob);
         }
 
-        // Advanced image verification against training data
+        // Advanced image scoring system
         function performImageVerification(capturedImageData) {
             const verificationResult = document.getElementById('verification-result');
             const verificationMessage = document.getElementById('verification-message');
             const verificationStatus = document.getElementById('verification-status');
             
             verificationResult.classList.remove('hidden');
-            verificationMessage.textContent = 'Analyzing image against training data...';
+            verificationMessage.textContent = 'Calculating your score...';
             verificationStatus.textContent = 'Processing';
             verificationStatus.className = 'status-indicator status-pending';
             
@@ -1025,57 +1027,72 @@
                 });
                 
                 const maxSimilarity = Math.max(...similarityScores);
-                const averageSimilarity = similarityScores.reduce((a, b) => a + b, 0) / similarityScores.length;
-                const confidenceThreshold = 0.8; // 80% similarity required
-                
-                // Determine verification result
-                const isVerified = maxSimilarity > confidenceThreshold;
                 const confidenceScore = Math.round(maxSimilarity * 100);
+                const pointsEarned = confidenceScore; // 1 point per % confidence
                 
-                if (isVerified) {
-                    verificationMessage.innerHTML = `
-                        ✅ <strong>VERIFIED!</strong><br>
-                        Your photo has been approved.<br>
-                        <span style="color: #10b981;">Posting to Farcaster...</span>
-                    `;
-                    verificationStatus.textContent = 'Verified';
-                    verificationStatus.className = 'status-indicator status-success';
-                    
-                    // Simulate Farcaster posting
-                    setTimeout(() => {
-                        showNotification('Photo verified and posted to Farcaster!', 'success');
-                        updateLeaderboard();
-                        resetSubmission();
-                    }, 2000);
-                    
-                } else {
-                    const attemptsLeft = maxVerificationAttempts - currentVerificationAttempt;
-                    
-                    if (attemptsLeft > 0) {
-                        verificationMessage.innerHTML = `
-                            ❌ <strong>NOT VERIFIED</strong><br>
-                            Your photo doesn't meet our requirements.<br>
-                            <span style="color: #f59e0b;">Attempts remaining: ${attemptsLeft}</span><br>
-                            <em>Try taking another photo.</em>
-                        `;
-                        verificationStatus.textContent = 'Try Again';
-                        verificationStatus.className = 'status-indicator status-pending';
-                        
-                        // Show take photo button again
-                        setTimeout(() => {
-                            document.getElementById('camera-open-btn').style.display = 'inline-block';
-                        }, 3000);
-                        
-                    } else {
-                        verificationMessage.innerHTML = `
-                            ❌ <strong>MAXIMUM ATTEMPTS REACHED</strong><br>
-                            You've used all ${maxVerificationAttempts} attempts.<br>
-                            <span style="color: #ef4444;">Please try again later.</span>
-                        `;
-                        verificationStatus.textContent = 'Failed';
-                        verificationStatus.className = 'status-indicator status-error';
-                    }
+                // Update user scores
+                if (!userScores[userWallet]) {
+                    userScores[userWallet] = [];
+                    userSubmissions[userWallet] = 0;
                 }
+                userScores[userWallet].push(confidenceScore);
+                userSubmissions[userWallet] += 1;
+                
+                // Calculate average score
+                const averageScore = userScores[userWallet].reduce((a, b) => a + b, 0) / userScores[userWallet].length;
+                const roundedAverage = Math.round(averageScore * 100) / 100; // Round to 2 decimal places
+                
+                // Determine result status based on confidence level
+                let statusClass = 'status-success';
+                let statusText = 'Posted';
+                let resultMessage = '';
+                
+                if (confidenceScore >= 80) {
+                    resultMessage = `
+                        🎯 <strong>EXCELLENT MATCH!</strong><br>
+                        Confidence Score: <span class="similarity-score">${confidenceScore}%</span><br>
+                        Photos Submitted: <span class="similarity-score">${userSubmissions[userWallet]}</span><br>
+                        Average Score: <span class="similarity-score">${roundedAverage}%</span><br>
+                        <span style="color: #10b981;">Posted to Farcaster with ${confidenceScore}% confidence!</span>
+                    `;
+                } else if (confidenceScore >= 60) {
+                    resultMessage = `
+                        ⭐ <strong>GOOD MATCH!</strong><br>
+                        Confidence Score: <span class="similarity-score">${confidenceScore}%</span><br>
+                        Photos Submitted: <span class="similarity-score">${userSubmissions[userWallet]}</span><br>
+                        Average Score: <span class="similarity-score">${roundedAverage}%</span><br>
+                        <span style="color: #10b981;">Posted to Farcaster with ${confidenceScore}% confidence!</span>
+                    `;
+                } else if (confidenceScore >= 40) {
+                    resultMessage = `
+                        📊 <strong>MODERATE MATCH</strong><br>
+                        Confidence Score: <span class="similarity-score">${confidenceScore}%</span><br>
+                        Photos Submitted: <span class="similarity-score">${userSubmissions[userWallet]}</span><br>
+                        Average Score: <span class="similarity-score">${roundedAverage}%</span><br>
+                        <span style="color: #10b981;">Posted to Farcaster with ${confidenceScore}% confidence!</span>
+                    `;
+                } else {
+                    resultMessage = `
+                        📈 <strong>KEEP TRYING!</strong><br>
+                        Confidence Score: <span class="similarity-score">${confidenceScore}%</span><br>
+                        Photos Submitted: <span class="similarity-score">${userSubmissions[userWallet]}</span><br>
+                        Average Score: <span class="similarity-score">${roundedAverage}%</span><br>
+                        <span style="color: #10b981;">Posted to Farcaster with ${confidenceScore}% confidence!</span><br>
+                        <em>Try different angles or lighting for higher scores!</em>
+                    `;
+                }
+                
+                verificationMessage.innerHTML = resultMessage;
+                verificationStatus.textContent = statusText;
+                verificationStatus.className = `status-indicator ${statusClass}`;
+                
+                // Simulate Farcaster posting with confidence score
+                setTimeout(() => {
+                    showNotification(`Photo posted with ${confidenceScore}% confidence! Average: ${roundedAverage}%`, 'success');
+                    updateLeaderboard();
+                    resetSubmission();
+                }, 2000);
+                
             }, 2000);
         }
 
@@ -1094,7 +1111,6 @@
         function resetSubmission() {
             document.getElementById('camera-open-btn').style.display = 'inline-block';
             capturedPhotoBlob = null;
-            currentVerificationAttempt = 0;
             
             // Hide verification result after success
             setTimeout(() => {
@@ -1103,8 +1119,67 @@
         }
 
         function updateLeaderboard() {
-            // This would update the leaderboard with real data
-            showNotification('Leaderboard updated!', 'info');
+            // Calculate average scores for all users
+            const sortedUsers = Object.entries(userScores)
+                .map(([wallet, scores]) => {
+                    const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+                    return {
+                        wallet: wallet,
+                        averageScore: Math.round(averageScore * 100) / 100, // Round to 2 decimal places
+                        submissions: userSubmissions[wallet] || 0,
+                        allScores: scores
+                    };
+                })
+                .sort((a, b) => b.averageScore - a.averageScore); // Sort by average score descending
+            
+            // Update leaderboard display
+            const leaderboardList = document.getElementById('leaderboard-list');
+            leaderboardList.innerHTML = '';
+            
+            sortedUsers.forEach((user, index) => {
+                const rank = index + 1;
+                const displayWallet = user.wallet.substring(0, 6) + '...' + user.wallet.substring(user.wallet.length - 4);
+                
+                const leaderboardItem = document.createElement('div');
+                leaderboardItem.className = 'leaderboard-item';
+                leaderboardItem.innerHTML = `
+                    <div class="rank">${rank}</div>
+                    <div class="user-avatar">${user.wallet.substring(2, 3).toUpperCase()}</div>
+                    <div class="user-info">
+                        <div class="user-name">${displayWallet}</div>
+                        <div class="user-score">${user.submissions} photos • scores: [${user.allScores.join(', ')}]</div>
+                    </div>
+                    <div class="score-badge">${user.averageScore}%</div>
+                `;
+                
+                leaderboardList.appendChild(leaderboardItem);
+            });
+            
+            // Add current user if not in top list
+            if (!sortedUsers.find(u => u.wallet === userWallet) && userWallet && userScores[userWallet]) {
+                const userScoreArray = userScores[userWallet];
+                const userAverage = userScoreArray.reduce((a, b) => a + b, 0) / userScoreArray.length;
+                const roundedUserAverage = Math.round(userAverage * 100) / 100;
+                const userSubmissionCount = userSubmissions[userWallet] || 0;
+                const displayWallet = userWallet.substring(0, 6) + '...' + userWallet.substring(userWallet.length - 4);
+                
+                const yourRank = sortedUsers.length + 1;
+                const userItem = document.createElement('div');
+                userItem.className = 'leaderboard-item';
+                userItem.style.backgroundColor = '#f0f2ff';
+                userItem.style.border = '2px solid #667eea';
+                userItem.innerHTML = `
+                    <div class="rank">${yourRank}</div>
+                    <div class="user-avatar">${userWallet.substring(2, 3).toUpperCase()}</div>
+                    <div class="user-info">
+                        <div class="user-name">${displayWallet} (You)</div>
+                        <div class="user-score">${userSubmissionCount} photos • scores: [${userScoreArray.join(', ')}]</div>
+                    </div>
+                    <div class="score-badge">${roundedUserAverage}%</div>
+                `;
+                
+                leaderboardList.appendChild(userItem);
+            }
         }
 
         // Notification system
