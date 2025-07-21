@@ -639,16 +639,16 @@
 
             <div id="access-denied-section" class="access-denied hidden">
                 <h3>🔒 Access Denied</h3>
-                <p>You need <strong id="required-tokens">1000 $DEGEN</strong> tokens to participate</p>
+                <p>You need <strong id="required-tokens">500 $HIGHER</strong> tokens to participate</p>
                 <div id="user-balance-info" class="token-info-display">
                     Your balance: <span id="user-token-balance">0</span> tokens
                 </div>
-                <p>Get $DEGEN tokens on Base network:</p>
-                <a href="https://app.uniswap.org/swap?chain=base" target="_blank" class="buy-token-btn">
-                    Buy $DEGEN on Uniswap
+                <p>Get $HIGHER tokens on Base network:</p>
+                <a href="https://app.uniswap.org/swap?outputCurrency=0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe&chain=base" target="_blank" class="buy-token-btn">
+                    Buy $HIGHER on Uniswap
                 </a>
-                <a href="https://www.coinbase.com/advanced-trade" target="_blank" class="buy-token-btn">
-                    Buy on Coinbase
+                <a href="https://aerodrome.finance/swap?from=eth&to=0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe" target="_blank" class="buy-token-btn">
+                    Buy on Aerodrome
                 </a>
                 <br><br>
                 <button class="wallet-connect" onclick="recheckTokenBalance()">
@@ -729,7 +729,7 @@
                 <button class="setup-btn" onclick="setupAI()">💾 Save API Key</button>
                 <button class="setup-btn" onclick="testAI()" style="background: #059669;">🧪 Test AI</button>
                 <p style="margin-top: 10px; font-size: 14px; color: #6b7280;">
-                    API keys are stored locally in your browser only. Cost: ~$0.01 per photo analysis.
+                    API keys are stored locally in your browser only. Cost: ~$0.003 per photo analysis.
                 </p>
             </div>
 
@@ -765,11 +765,11 @@
     <script>
         // 🔐 TOKEN CONFIGURATION
         const TOKEN_CONFIG = {
-            contractAddress: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
-            minimumBalance: 1000,
+            contractAddress: '0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe',
+            minimumBalance: 500,
             decimals: 18,
-            symbol: '$DEGEN',
-            name: 'Degen Token'
+            symbol: '$HIGHER',
+            name: 'Higher Token'
         };
 
         // Base network configuration
@@ -1443,7 +1443,7 @@
 
         function updateStats() {
             // Update usage statistics
-            const estimatedCost = aiAnalysisCount * 0.01; // Rough estimate
+            const estimatedCost = aiAnalysisCount * 0.003; // Updated cost for GPT-4o
             
             if (document.getElementById('total-ai-calls')) {
                 document.getElementById('total-ai-calls').textContent = aiAnalysisCount;
@@ -1484,7 +1484,7 @@
                         <div class="user-avatar">A</div>
                         <div class="user-info">
                             <div class="user-name">0xAlice...1234 🤖</div>
-                            <div class="user-score">5 AI-verified photos • scores: [85, 92, 78, 88, 91] • ${TOKEN_CONFIG.symbol}</div>
+                            <div class="user-score">5 AI-verified photos • scores: [85, 92, 78, 88, 91] • 2,500 $HIGHER</div>
                         </div>
                         <div class="score-badge">86.8%</div>
                     </div>
@@ -1493,7 +1493,7 @@
                         <div class="user-avatar">B</div>
                         <div class="user-info">
                             <div class="user-name">0xBob...5678 🤖</div>
-                            <div class="user-score">3 AI-verified photos • scores: [90, 75, 85] • ${TOKEN_CONFIG.symbol}</div>
+                            <div class="user-score">3 AI-verified photos • scores: [90, 75, 85] • 1,200 $HIGHER</div>
                         </div>
                         <div class="score-badge">83.33%</div>
                     </div>
