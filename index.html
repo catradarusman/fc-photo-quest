@@ -544,7 +544,7 @@
 
         <div class="ai-notice">
             <h3>🤖 Powered by Real AI</h3>
-            <p>Photos are analyzed by <span class="highlight">OpenAI GPT-4 Vision</span></p>
+            <p>Photos are analyzed by <span class="highlight">OpenAI GPT-4o</span></p>
             <p>Advanced computer vision for accurate scoring</p>
         </div>
 
@@ -765,11 +765,11 @@
     <script>
         // 🔐 TOKEN CONFIGURATION
         const TOKEN_CONFIG = {
-            contractAddress: '0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe',
-            minimumBalance: 500,
+            contractAddress: '0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed',
+            minimumBalance: 1000,
             decimals: 18,
-            symbol: '$HIGHER',
-            name: 'Higher Token'
+            symbol: '$DEGEN',
+            name: 'Degen Token'
         };
 
         // Base network configuration
@@ -828,7 +828,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        model: "gpt-4-vision-preview",
+                        model: "gpt-4o",
                         messages: [{
                             role: "user",
                             content: [
