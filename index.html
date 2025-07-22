@@ -991,6 +991,32 @@
                 </div>
 
                 <div class="requirement-card">
+                    <h3>🎭 Farcaster Auto-Posting</h3>
+                    <p><strong>Auto-Post Status:</strong> <span id="farcaster-status">Enabled ✅</span></p>
+                    <p>Automatically post user achievements to Farcaster after photo verification.</p>
+                    
+                    <div style="margin: 15px 0;">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="auto-post-toggle" checked style="transform: scale(1.2);">
+                            <span>Enable Auto-Posting to Farcaster</span>
+                        </label>
+                    </div>
+                    
+                    <p><strong>Farcaster API Key (Optional):</strong></p>
+                    <input type="password" id="admin-farcaster-key" class="admin-input" placeholder="Farcaster API Key for direct posting">
+                    <button class="camera-btn" onclick="updateFarcasterKey()" style="background: #8b5cf6;">
+                        🎭 Update Farcaster Key
+                    </button>
+                    <button class="camera-btn" onclick="testFarcasterConnection()" style="background: #7c3aed;">
+                        🧪 Test Farcaster API
+                    </button>
+                    
+                    <div style="background: #f0f9ff; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 12px;">
+                        <strong>Note:</strong> Without API key, auto-posting opens Warpcast with pre-filled text. With API key, posts directly to Farcaster.
+                    </div>
+                </div>
+
+                <div class="requirement-card">
                     <h3>📊 App Analytics</h3>
                     <div class="admin-stats-grid">
                         <div class="admin-stat-card">
@@ -1097,6 +1123,10 @@
         let isDemoMode = !openAIApiKey;
         let currentPhotoResult = null;
         let isAdmin = false;
+        let userFarcasterHandle = null;
+        let userENSName = null;
+        let farcasterApiKey = localStorage.getItem('farcaster_api_key') || '';
+        let autoPostEnabled = localStorage.getItem('auto_post_enabled') !== 'false';
 
         // 🎭 FARCASTER INTEGRATION FUNCTIONS
 
@@ -1105,14 +1135,18 @@
             return `${baseUrl}?frame=${action}`;
         }
 
-        function generateCastText(photoResult = null) {
+        function generateCastText(photoResult = null, userHandle = null) {
+            const handle = userHandle || userFarcasterHandle || userENSName || `${userWallet?.substring(0, 6)}...${userWallet?.substring(userWallet.length - 4)}`;
+            
             if (photoResult) {
-                return `🎯 Just scored ${photoResult.confidence}% on FC Photo Quest! 
-🤖 AI analyzed my photo: "${photoResult.reasoning.substring(0, 100)}..."
-📊 Average score: ${photoResult.averageScore}%
-🏆 Current rank: #${photoResult.rank}
+                return `🎯 ${handle} just scored ${photoResult.confidence}% on FC Photo Quest! 
 
-Try to beat my score! 👇`;
+🤖 AI Analysis: "${photoResult.reasoning.substring(0, 120)}..."
+📊 Average Score: ${photoResult.averageScore}%
+🏆 Current Rank: #${photoResult.rank}
+📸 Photos Submitted: ${userSubmissions[userWallet]}
+
+Can you beat this score? 👇`;
             } else {
                 return `🎯 FC Photo Quest is live! 
 🤖 AI-powered photo verification for $HIGHER holders
@@ -1123,13 +1157,155 @@ Join the quest! 👇`;
             }
         }
 
+        // Resolve ENS name for wallet
+        async function resolveENSName(walletAddress) {
+            try {
+                if (!web3Instance) return null;
+                
+                const ensName = await web3Instance.eth.ens.reverse(walletAddress);
+                if (ensName && ensName !== walletAddress) {
+                    return ensName;
+                }
+                return null;
+            } catch (error) {
+                console.log('ENS resolution failed:', error);
+                return null;
+            }
+        }
+
+        // Get Farcaster account info from various sources
+        async function getFarcasterAccount(walletAddress) {
+            try {
+                // Try multiple methods to get Farcaster handle
+                
+                // Method 1: Check local storage cache
+                const cachedHandle = localStorage.getItem(`fc_handle_${walletAddress}`);
+                if (cachedHandle) {
+                    return cachedHandle;
+                }
+
+                // Method 2: Use Airstack API (free tier available)
+                const airstackResponse = await fetch('https://api.airstack.xyz/gql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_AIRSTACK_API_KEY' // Replace with actual key or make configurable
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            query GetFarcasterUser($address: String!) {
+                                Socials(
+                                    input: {filter: {userAssociatedAddresses: {_eq: $address}, dappName: {_eq: farcaster}}, blockchain: ethereum}
+                                ) {
+                                    Social {
+                                        profileName
+                                        userAssociatedAddresses
+                                    }
+                                }
+                            }
+                        `,
+                        variables: { address: walletAddress }
+                    })
+                });
+
+                if (airstackResponse.ok) {
+                    const data = await airstackResponse.json();
+                    const farcasterProfile = data.data?.Socials?.Social?.[0];
+                    if (farcasterProfile?.profileName) {
+                        const handle = '@' + farcasterProfile.profileName;
+                        localStorage.setItem(`fc_handle_${walletAddress}`, handle);
+                        return handle;
+                    }
+                }
+
+                // Method 3: Fallback - use a demo/placeholder approach
+                return null;
+                
+            } catch (error) {
+                console.log('Farcaster account lookup failed:', error);
+                return null;
+            }
+        }
+
+        // Auto-post to Farcaster after photo verification
+        async function autoPostToFarcaster(photoResult) {
+            if (!autoPostEnabled) {
+                console.log('Auto-posting disabled');
+                return false;
+            }
+
+            try {
+                showNotification('Auto-posting to Farcaster...', 'info');
+                
+                const castText = generateCastText(photoResult, userFarcasterHandle);
+                const frameUrl = generateFrameUrl('main');
+                
+                // Method 1: Use Warpcast Intent (opens in new tab)
+                const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds[]=${encodeURIComponent(frameUrl)}`;
+                
+                // For true auto-posting, we'd need backend integration or user authorization
+                // For now, we'll auto-open the compose window with pre-filled text
+                const popup = window.open(warpcastUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+                
+                if (popup) {
+                    showNotification('🎭 Auto-opened Warpcast with your achievement! Click "Cast" to share.', 'success');
+                    return true;
+                } else {
+                    throw new Error('Popup blocked');
+                }
+                
+            } catch (error) {
+                console.error('Auto-post failed:', error);
+                showNotification('Auto-post failed, you can share manually', 'warning');
+                return false;
+            }
+        }
+
+        // Alternative: Post via Farcaster API (requires API setup)
+        async function postViaFarcasterAPI(photoResult) {
+            if (!farcasterApiKey) {
+                console.log('No Farcaster API key configured');
+                return false;
+            }
+
+            try {
+                const castText = generateCastText(photoResult, userFarcasterHandle);
+                const frameUrl = generateFrameUrl('main');
+                
+                // This would require a backend endpoint or Farcaster Hub API integration
+                const response = await fetch('/api/farcaster/cast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${farcasterApiKey}`
+                    },
+                    body: JSON.stringify({
+                        text: castText,
+                        embeds: [frameUrl],
+                        channel: null // or specific channel
+                    })
+                });
+
+                if (response.ok) {
+                    showNotification('🎭 Automatically posted to Farcaster!', 'success');
+                    return true;
+                } else {
+                    throw new Error('API post failed');
+                }
+                
+            } catch (error) {
+                console.error('Farcaster API post failed:', error);
+                return false;
+            }
+        }
+
         async function shareToFarcaster() {
             if (!currentPhotoResult) {
                 showNotification('No photo result to share!', 'error');
                 return;
             }
 
-            const castText = generateCastText(currentPhotoResult);
+            const castText = generateCastText(currentPhotoResult, userFarcasterHandle);
             const frameUrl = generateFrameUrl('main');
             
             const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds[]=${encodeURIComponent(frameUrl)}`;
@@ -1419,6 +1595,64 @@ Explore the map 👇`;
             document.getElementById('admin-openai-key').value = '';
             
             showNotification('OpenAI API key updated!', 'success');
+        }
+
+        function updateFarcasterKey() {
+            if (!isAdmin) {
+                showNotification('Admin access required', 'error');
+                return;
+            }
+
+            const newApiKey = document.getElementById('admin-farcaster-key').value.trim();
+            
+            farcasterApiKey = newApiKey;
+            localStorage.setItem('farcaster_api_key', farcasterApiKey);
+            
+            document.getElementById('admin-farcaster-key').value = '';
+            
+            if (newApiKey) {
+                showNotification('Farcaster API key updated! Direct posting enabled.', 'success');
+            } else {
+                showNotification('Farcaster API key cleared. Using Warpcast intent.', 'info');
+            }
+        }
+
+        function testFarcasterConnection() {
+            if (!isAdmin) {
+                showNotification('Admin access required', 'error');
+                return;
+            }
+
+            if (!farcasterApiKey) {
+                showNotification('Testing Warpcast intent method...', 'info');
+                
+                // Test with Warpcast intent
+                const testUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent('🧪 Test cast from FC Photo Quest admin panel!')}`;
+                const popup = window.open(testUrl, '_blank', 'width=600,height=700');
+                
+                if (popup) {
+                    showNotification('Warpcast intent test successful!', 'success');
+                } else {
+                    showNotification('Popup blocked - check browser settings', 'warning');
+                }
+                return;
+            }
+            
+            showNotification('Testing Farcaster API connection...', 'info');
+            
+            // Test API connection (would need backend endpoint)
+            postViaFarcasterAPI({
+                confidence: 85,
+                averageScore: 85,
+                rank: 1,
+                reasoning: 'Test post from admin panel'
+            }).then(success => {
+                if (success) {
+                    showNotification('Farcaster API test successful!', 'success');
+                } else {
+                    showNotification('Farcaster API test failed - check configuration', 'error');
+                }
+            });
         }
 
         function testAIConnection() {
