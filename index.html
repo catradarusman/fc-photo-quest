@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FC Photo Quest</title>
     
-    <!-- Farcaster Frame Meta Tags -->
+    <!-- Farcaster Mini App Meta Tags -->
+    <meta name="fc:miniapp" content='{"version": "1", "imageUrl": "https://your-app-url.netlify.app/frame-image.png", "button": {"title": "📸 Take Photo", "action": {"type": "launch_frame", "name": "FC Photo Quest", "url": "https://your-app-url.netlify.app", "splashImageUrl": "https://your-app-url.netlify.app/logo.png", "splashBackgroundColor": "#667eea"}}}' />
+    
+    <!-- Legacy Frame Support -->
     <meta property="fc:frame" content="vNext" />
     <meta property="fc:frame:image" content="https://your-app-url.netlify.app/frame-image.png" />
     <meta property="fc:frame:button:1" content="📸 Take Photo" />
@@ -33,6 +36,12 @@
     
     <!-- Web3.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.10.0/web3.min.js"></script>
+    
+    <!-- Farcaster Mini App SDK -->
+    <script type="module">
+        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
+        window.farcasterSDK = sdk;
+    </script>
     
     <style>
         * {
@@ -668,16 +677,16 @@
         </div>
 
         <div class="farcaster-notice">
-            <h3>🎭 Native Farcaster Frame</h3>
-            <p>Share this app as a <span class="highlight">Farcaster Frame</span> for maximum engagement!</p>
-            <p>Users can interact directly from their Farcaster feeds</p>
+            <h3>🎮 Native Farcaster Mini App</h3>
+            <p>Experience seamless <span class="highlight">in-app functionality</span> with native Farcaster integration!</p>
+            <p>Direct authentication, posting, and social features without leaving Farcaster</p>
         </div>
 
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="showTab('submit')">📸 Submit</button>
             <button class="nav-tab" onclick="showTab('leaderboard')">🏆 Leaderboard</button>
             <button class="nav-tab" onclick="showTab('map')">🗺️ World Map</button>
-            <button class="nav-tab" onclick="showTab('share')">🎭 Share Frame</button>
+            <button class="nav-tab" onclick="showTab('share')">🎮 Mini App</button>
             <button class="nav-tab hidden" id="admin-tab" onclick="showTab('admin')">⚙️ Admin</button>
         </div>
 
@@ -743,16 +752,19 @@
                         </div>
                         
                         <div class="share-section" id="post-photo-share" style="display: none;">
-                            <h3>🎭 Share Your Result on Farcaster!</h3>
+                            <h3>🎭 Farcaster Sharing</h3>
                             <div class="cast-preview" id="cast-preview">
-                                <h4>📱 Your Cast Preview:</h4>
+                                <h4>📱 Auto-Generated Cast:</h4>
                                 <p id="cast-text">Loading...</p>
                             </div>
+                            <div style="background: #f0f9ff; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                                <p><strong>🚀 Auto-Posting:</strong> <span id="auto-post-status">Enabled - will post automatically!</span></p>
+                            </div>
                             <button class="farcaster-share" onclick="shareToFarcaster()">
-                                🎭 Post to Farcaster
+                                🎭 Share Again Manually
                             </button>
                             <button class="camera-btn" onclick="shareAsFrame()" style="background: #8b5cf6;">
-                                📱 Share as Frame
+                                📱 Copy Frame URL
                             </button>
                         </div>
                     </div>
@@ -873,22 +885,46 @@
             </div>
         </div>
 
-        <!-- Share Frame Tab -->
+        <!-- Mini App Tab -->
         <div id="share" class="tab-content">
-            <h2 style="margin-bottom: 20px;">🎭 Share as Farcaster Frame</h2>
+            <h2 style="margin-bottom: 20px;">🎮 Farcaster Mini App Integration</h2>
             
             <div class="frame-mode">
-                <h3>📱 Frame Integration Ready!</h3>
-                <p>Your app is now a fully functional Farcaster Frame.</p>
-                <p>Share it on Farcaster for maximum engagement!</p>
+                <h3>📱 Farcaster Mini App Ready!</h3>
+                <p>Your app is now a fully functional Farcaster Mini App with native integration.</p>
+                <p>Users get seamless in-app experience with automatic authentication and posting!</p>
             </div>
             
             <div class="requirement-card">
-                <h3>🚀 How to Share</h3>
-                <p><strong>1. Copy your app URL:</strong> https://your-app-url.netlify.app</p>
-                <p><strong>2. Post it in any Farcaster client</strong> (Warpcast, etc.)</p>
-                <p><strong>3. Frame auto-detects</strong> and shows interactive buttons</p>
-                <p><strong>4. Users click buttons</strong> to take photos directly from feed!</p>
+                <h3>🚀 Mini App Setup</h3>
+                <p><strong>1. Deploy your app</strong> to a stable domain (e.g., your-domain.com)</p>
+                <p><strong>2. Create manifest file</strong> at /.well-known/farcaster.json</p>
+                <p><strong>3. Verify ownership</strong> using Warpcast Developer Tools</p>
+                <p><strong>4. Share Mini App URL</strong> in Farcaster to auto-detect</p>
+            </div>
+            
+            <div class="requirement-card">
+                <h3>📄 Required Manifest File</h3>
+                <p>Create <code>/.well-known/farcaster.json</code> on your domain:</p>
+                <div class="cast-preview">
+                    <pre style="font-size: 12px; line-height: 1.4;">{
+  "accountAssociation": {
+    "header": "...",
+    "payload": "...",
+    "signature": "..."
+  },
+  "frame": {
+    "version": "1",
+    "name": "FC Photo Quest",
+    "iconUrl": "https://your-domain.com/icon.png",
+    "splashImageUrl": "https://your-domain.com/splash.png",
+    "splashBackgroundColor": "#667eea",
+    "homeUrl": "https://your-domain.com",
+    "webhookUrl": "https://your-domain.com/api/webhook"
+  }
+}</pre>
+                </div>
+                <p><strong>Generate accountAssociation</strong> using <a href="https://warpcast.com/~/settings/developer-tools" target="_blank">Warpcast Developer Tools</a></p>
             </div>
             
             <div class="share-section">
@@ -927,13 +963,32 @@
             </div>
             
             <div class="requirement-card">
-                <h3>🎛️ Frame Features</h3>
-                <p>✅ <strong>Interactive Buttons:</strong> Take Photo, View Leaderboard, See Map</p>
+                <h3>🎛️ Mini App Features</h3>
+                <p>✅ <strong>Native Authentication:</strong> Seamless Farcaster login without external auth</p>
+                <p>✅ <strong>In-App Posting:</strong> Direct casting without leaving the client</p>
                 <p>✅ <strong>Token Gating:</strong> Only $HIGHER holders can participate</p>
                 <p>✅ <strong>AI Integration:</strong> Real photo analysis with OpenAI</p>
-                <p>✅ <strong>Social Sharing:</strong> Auto-post results to Farcaster</p>
+                <p>✅ <strong>Auto-Posting:</strong> Native Farcaster posting with user's handle</p>
+                <p>✅ <strong>Social Integration:</strong> Direct access to user's Farcaster identity</p>
+                <p>✅ <strong>Mobile Optimized:</strong> Perfect experience on mobile Farcaster clients</p>
                 <p>✅ <strong>Global Map:</strong> See participants worldwide</p>
                 <p>✅ <strong>Leaderboard:</strong> Competitive ranking system</p>
+            </div>
+            
+            <div class="requirement-card">
+                <h3>🔄 Mini App vs Frame Differences</h3>
+                <p><strong>🎭 Mini Apps (New):</strong></p>
+                <p>• Run directly inside Farcaster clients</p>
+                <p>• Native authentication and posting</p>
+                <p>• Access to user's social graph</p>
+                <p>• Better mobile experience</p>
+                <p>• No external redirects needed</p>
+                <br>
+                <p><strong>🖼️ Frames (Legacy):</strong></p>
+                <p>• Static images with buttons</p>
+                <p>• External website redirects</p>
+                <p>• Limited interaction capabilities</p>
+                <p>• Requires manual sharing</p>
             </div>
         </div>
 
@@ -1012,7 +1067,11 @@
                     </button>
                     
                     <div style="background: #f0f9ff; padding: 10px; border-radius: 5px; margin: 10px 0; font-size: 12px;">
-                        <strong>Note:</strong> Without API key, auto-posting opens Warpcast with pre-filled text. With API key, posts directly to Farcaster.
+                        <strong>Setup Instructions:</strong><br>
+                        • Without API key: Opens Warpcast with pre-filled text (recommended for most users)<br>
+                        • With Farcaster API: Requires backend integration for direct posting<br>
+                        • For Farcaster handle detection: Get free API key from <a href="https://airstack.xyz" target="_blank">Airstack.xyz</a><br>
+                        • Replace 'YOUR_AIRSTACK_API_KEY' in the code with your actual key
                     </div>
                 </div>
 
@@ -1127,6 +1186,157 @@
         let userENSName = null;
         let farcasterApiKey = localStorage.getItem('farcaster_api_key') || '';
         let autoPostEnabled = localStorage.getItem('auto_post_enabled') !== 'false';
+        let farcasterUser = null;
+        let isMiniApp = false;
+        let sdk = null;
+
+        // 🎮 MINI APP INITIALIZATION
+
+        // Initialize Farcaster Mini App
+        async function initializeMiniApp() {
+            try {
+                // Check if running in Mini App context
+                const urlParams = new URLSearchParams(window.location.search);
+                isMiniApp = urlParams.get('miniApp') === 'true' || 
+                           window.location.pathname.startsWith('/mini') ||
+                           window.parent !== window; // iframe detection
+
+                if (isMiniApp && window.farcasterSDK) {
+                    sdk = window.farcasterSDK;
+                    console.log('Mini App SDK initialized');
+                    
+                    // Authenticate user with Farcaster
+                    await authenticateWithFarcaster();
+                    
+                    // Hide splash screen and show app
+                    await sdk.actions.ready();
+                    showNotification('Mini App loaded successfully!', 'success');
+                } else {
+                    console.log('Running as regular web app');
+                    // For non-mini app users, show regular wallet connect
+                    showWalletConnectOption();
+                }
+                
+            } catch (error) {
+                console.error('Mini App initialization failed:', error);
+                // Fallback to regular web app mode
+                showWalletConnectOption();
+            }
+        }
+
+        // Authenticate with Farcaster using Quick Auth
+        async function authenticateWithFarcaster() {
+            try {
+                if (!sdk) throw new Error('SDK not available');
+                
+                showNotification('Authenticating with Farcaster...', 'info');
+                
+                // Get user info from Farcaster
+                const context = await sdk.context;
+                farcasterUser = context.user;
+                
+                if (farcasterUser) {
+                    userFarcasterHandle = `@${farcasterUser.username}`;
+                    userWallet = farcasterUser.custodyAddress || farcasterUser.verifiedAddresses?.[0];
+                    
+                    console.log('Farcaster user:', farcasterUser);
+                    console.log('User wallet:', userWallet);
+                    
+                    // Update UI
+                    updateUIForFarcasterUser();
+                    
+                    // Check token balance if wallet available
+                    if (userWallet) {
+                        await checkTokenBalanceForFarcasterUser();
+                    } else {
+                        // Farcaster user but no wallet - show connect wallet option
+                        showNotification('Please connect your wallet to participate', 'warning');
+                        showWalletConnectOption();
+                    }
+                } else {
+                    throw new Error('No Farcaster user found');
+                }
+                
+            } catch (error) {
+                console.error('Farcaster authentication failed:', error);
+                showNotification('Farcaster auth failed, using wallet connect', 'warning');
+                showWalletConnectOption();
+            }
+        }
+
+        // Update UI for authenticated Farcaster user
+        function updateUIForFarcasterUser() {
+            const walletText = document.getElementById('wallet-text');
+            const tokenInfo = document.getElementById('token-info');
+            
+            if (walletText) {
+                walletText.textContent = `Farcaster: ${userFarcasterHandle}`;
+            }
+            
+            if (tokenInfo) {
+                tokenInfo.innerHTML = '<p>Authenticated with Farcaster ✅</p>';
+                tokenInfo.classList.remove('hidden');
+            }
+        }
+
+        // Check token balance for Farcaster user
+        async function checkTokenBalanceForFarcasterUser() {
+            try {
+                if (!userWallet) return;
+                
+                // Initialize Web3 for token checking
+                if (!initWeb3()) {
+                    throw new Error('Web3 not available');
+                }
+                
+                const tokenResult = await checkTokenBalance(userWallet);
+                userTokenBalance = tokenResult.balance;
+                hasTokenAccess = tokenResult.hasAccess;
+                
+                const tokenInfo = document.getElementById('token-info');
+                
+                if (hasTokenAccess) {
+                    tokenInfo.innerHTML = `
+                        <p>✅ $HIGHER access verified!</p>
+                        <p>Farcaster: ${userFarcasterHandle}</p>
+                        <p>Balance: ${tokenResult.formatted} ${TOKEN_CONFIG.symbol}</p>
+                    `;
+                    tokenInfo.className = 'token-status token-success';
+                    
+                    document.getElementById('access-granted-section').classList.remove('hidden');
+                    document.getElementById('access-denied-section').classList.add('hidden');
+                    
+                    requestLocation();
+                    showNotification(`Mini App access granted! ${tokenResult.formatted} ${TOKEN_CONFIG.symbol}`, 'success');
+                    
+                } else {
+                    tokenInfo.innerHTML = `
+                        <p>❌ Insufficient $HIGHER tokens</p>
+                        <p>Farcaster: ${userFarcasterHandle}</p>
+                        <p>Balance: ${tokenResult.formatted} ${TOKEN_CONFIG.symbol}</p>
+                    `;
+                    tokenInfo.className = 'token-status token-error';
+                    
+                    document.getElementById('access-granted-section').classList.add('hidden');
+                    document.getElementById('access-denied-section').classList.remove('hidden');
+                    document.getElementById('user-token-balance').textContent = tokenResult.formatted + ' ' + TOKEN_CONFIG.symbol;
+                    
+                    showNotification(`Need ${TOKEN_CONFIG.minimumBalance} ${TOKEN_CONFIG.symbol} for access`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Token balance check failed:', error);
+                showNotification('Token balance check failed: ' + error.message, 'error');
+            }
+        }
+
+        // Show wallet connect option for non-Mini App users
+        function showWalletConnectOption() {
+            const walletBtn = document.getElementById('wallet-connect-btn');
+            if (walletBtn) {
+                walletBtn.style.display = 'block';
+            }
+        }
 
         // 🎭 FARCASTER INTEGRATION FUNCTIONS
 
@@ -1240,61 +1450,41 @@ Join the quest! 👇`;
                 const castText = generateCastText(photoResult, userFarcasterHandle);
                 const frameUrl = generateFrameUrl('main');
                 
-                // Method 1: Use Warpcast Intent (opens in new tab)
+                // Use Mini App SDK for native posting if available
+                if (isMiniApp && sdk) {
+                    try {
+                        await sdk.actions.composeCast({
+                            text: castText,
+                            embeds: [frameUrl]
+                        });
+                        showNotification('🎭 Successfully posted to Farcaster!', 'success');
+                        return true;
+                    } catch (sdkError) {
+                        console.error('SDK posting failed, falling back to intent:', sdkError);
+                        // Fall through to intent method
+                    }
+                }
+                
+                // Fallback: Use Warpcast Intent (opens in new tab)
                 const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds[]=${encodeURIComponent(frameUrl)}`;
                 
-                // For true auto-posting, we'd need backend integration or user authorization
-                // For now, we'll auto-open the compose window with pre-filled text
-                const popup = window.open(warpcastUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
-                
-                if (popup) {
-                    showNotification('🎭 Auto-opened Warpcast with your achievement! Click "Cast" to share.', 'success');
-                    return true;
+                if (isMiniApp && sdk) {
+                    // Use SDK to open URL within Mini App
+                    await sdk.actions.openUrl(warpcastUrl);
                 } else {
-                    throw new Error('Popup blocked');
+                    // Regular web app - open in new window
+                    const popup = window.open(warpcastUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+                    if (!popup) {
+                        throw new Error('Popup blocked');
+                    }
                 }
+                
+                showNotification('🎭 Opened Farcaster composer with your achievement!', 'success');
+                return true;
                 
             } catch (error) {
                 console.error('Auto-post failed:', error);
-                showNotification('Auto-post failed, you can share manually', 'warning');
-                return false;
-            }
-        }
-
-        // Alternative: Post via Farcaster API (requires API setup)
-        async function postViaFarcasterAPI(photoResult) {
-            if (!farcasterApiKey) {
-                console.log('No Farcaster API key configured');
-                return false;
-            }
-
-            try {
-                const castText = generateCastText(photoResult, userFarcasterHandle);
-                const frameUrl = generateFrameUrl('main');
-                
-                // This would require a backend endpoint or Farcaster Hub API integration
-                const response = await fetch('/api/farcaster/cast', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${farcasterApiKey}`
-                    },
-                    body: JSON.stringify({
-                        text: castText,
-                        embeds: [frameUrl],
-                        channel: null // or specific channel
-                    })
-                });
-
-                if (response.ok) {
-                    showNotification('🎭 Automatically posted to Farcaster!', 'success');
-                    return true;
-                } else {
-                    throw new Error('API post failed');
-                }
-                
-            } catch (error) {
-                console.error('Farcaster API post failed:', error);
+                showNotification('Auto-post failed: ' + error.message, 'warning');
                 return false;
             }
         }
@@ -1308,9 +1498,31 @@ Join the quest! 👇`;
             const castText = generateCastText(currentPhotoResult, userFarcasterHandle);
             const frameUrl = generateFrameUrl('main');
             
+            // Use Mini App SDK for native posting if available
+            if (isMiniApp && sdk) {
+                try {
+                    await sdk.actions.composeCast({
+                        text: castText,
+                        embeds: [frameUrl]
+                    });
+                    showNotification('🎭 Posted to Farcaster via Mini App!', 'success');
+                    return;
+                } catch (error) {
+                    console.error('SDK posting failed:', error);
+                    // Fall through to intent method
+                }
+            }
+            
+            // Fallback to intent URL
             const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(castText)}&embeds[]=${encodeURIComponent(frameUrl)}`;
-            window.open(warpcastUrl, '_blank');
-            showNotification('Opening Warpcast to share your result!', 'success');
+            
+            if (isMiniApp && sdk) {
+                await sdk.actions.openUrl(warpcastUrl);
+            } else {
+                window.open(warpcastUrl, '_blank');
+            }
+            
+            showNotification('Opening Farcaster composer!', 'success');
         }
 
         function shareAsFrame() {
@@ -1799,10 +2011,23 @@ Explore the map 👇`;
                 const currentPromptDisplay = document.getElementById('current-prompt-display');
                 const adminQuestPrompt = document.getElementById('admin-quest-prompt');
                 const apiStatus = document.getElementById('api-status');
+                const farcasterStatus = document.getElementById('farcaster-status');
+                const autoPostToggle = document.getElementById('auto-post-toggle');
                 
                 if (currentPromptDisplay) currentPromptDisplay.textContent = questPrompt;
                 if (adminQuestPrompt) adminQuestPrompt.value = questPrompt;
                 if (apiStatus) apiStatus.textContent = openAIApiKey ? 'Connected ✅' : 'Not Set ❌';
+                if (farcasterStatus) farcasterStatus.textContent = autoPostEnabled ? 'Enabled ✅' : 'Disabled ❌';
+                if (autoPostToggle) {
+                    autoPostToggle.checked = autoPostEnabled;
+                    autoPostToggle.addEventListener('change', function() {
+                        autoPostEnabled = this.checked;
+                        localStorage.setItem('auto_post_enabled', autoPostEnabled.toString());
+                        const status = document.getElementById('farcaster-status');
+                        if (status) status.textContent = autoPostEnabled ? 'Enabled ✅' : 'Disabled ❌';
+                        showNotification(`Auto-posting ${autoPostEnabled ? 'enabled' : 'disabled'}`, 'success');
+                    });
+                }
                 
                 const savedModel = localStorage.getItem('selected_ai_model') || 'gpt-4o';
                 const aiModelSelect = document.getElementById('ai-model-select');
@@ -1950,6 +2175,9 @@ Explore the map 👇`;
                         showNotification(`Farcaster Frame access granted! ${tokenResult.formatted} ${TOKEN_CONFIG.symbol}`, 'success');
                     }
                     
+                    // Get user's Farcaster account and ENS info
+                    getUserSocialInfo();
+                    
                     requestLocation();
                     
                 } else {
@@ -1980,6 +2208,33 @@ Explore the map 👇`;
 
         function recheckTokenBalance() {
             connectWallet();
+        }
+
+        // Get user's social media info (Farcaster handle, ENS name)
+        async function getUserSocialInfo() {
+            try {
+                showNotification('Looking up your Farcaster profile...', 'info');
+                
+                // Get ENS name
+                userENSName = await resolveENSName(userWallet);
+                if (userENSName) {
+                    console.log('ENS name found:', userENSName);
+                }
+                
+                // Get Farcaster handle
+                userFarcasterHandle = await getFarcasterAccount(userWallet);
+                if (userFarcasterHandle) {
+                    console.log('Farcaster handle found:', userFarcasterHandle);
+                    showNotification(`Found your Farcaster: ${userFarcasterHandle}`, 'success');
+                } else if (userENSName) {
+                    showNotification(`Using ENS name: ${userENSName}`, 'info');
+                } else {
+                    console.log('No Farcaster handle or ENS found, will use wallet address');
+                }
+                
+            } catch (error) {
+                console.error('Social info lookup failed:', error);
+            }
         }
 
         function requestLocation() {
@@ -2256,15 +2511,33 @@ Explore the map 👇`;
             
             const shareSection = document.getElementById('post-photo-share');
             const castPreview = document.getElementById('cast-text');
+            const autoPostStatus = document.getElementById('auto-post-status');
             
             shareSection.style.display = 'block';
-            castPreview.textContent = generateCastText(currentPhotoResult);
+            castPreview.textContent = generateCastText(currentPhotoResult, userFarcasterHandle);
+            
+            if (autoPostStatus) {
+                if (autoPostEnabled) {
+                    autoPostStatus.textContent = 'Enabled - will auto-post in 2 seconds!';
+                    autoPostStatus.style.color = '#10b981';
+                } else {
+                    autoPostStatus.textContent = 'Disabled - manual sharing only';
+                    autoPostStatus.style.color = '#6b7280';
+                }
+            }
             
             setTimeout(() => {
                 showNotification(`Frame score: ${confidenceScore}%! Ready to share on Farcaster!`, 'success');
                 updateLeaderboard();
                 updateMap();
                 enableCameraButton();
+                
+                // Auto-post to Farcaster if enabled
+                if (autoPostEnabled) {
+                    setTimeout(() => {
+                        autoPostToFarcaster(currentPhotoResult);
+                    }, 1500); // Delay to let user see the result first
+                }
                 
                 setTimeout(() => {
                     verificationResult.classList.add('hidden');
@@ -2406,8 +2679,8 @@ Explore the map 👇`;
         }
 
         // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('FC Photo Quest - Clean Version initialized');
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('FC Photo Quest - Mini App Version initialized');
             console.log('Frame URL:', generateFrameUrl('main'));
             console.log('Admin wallet:', ADMIN_CONFIG.walletAddress);
             
@@ -2443,6 +2716,9 @@ Explore the map 👇`;
             }
             
             document.getElementById('quest-description').textContent = questPrompt;
+            
+            // Initialize Mini App or regular web app
+            await initializeMiniApp();
         });
     </script>
 </body>
